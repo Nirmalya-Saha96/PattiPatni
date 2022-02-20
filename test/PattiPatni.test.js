@@ -82,7 +82,7 @@ describe('PattiPatni', ()=>{
     assert.equal("h", certificateDetail[0]);
   });
 
-  it('requires one person get married only once at a time', async () =>{
+  it('requires two persons get married only once at a time', async () =>{
     try{
       await factory.methods.bookMarriageAppointment("h", "123", accounts[1], "w", "123", accounts[2], "a", "123", accounts[3], "hHash", "wHash").send({
         from: accounts[1],
@@ -118,6 +118,43 @@ describe('PattiPatni', ()=>{
       assert(err);
     }
   });
+
+  it('requires one person cannot marry multiple other persons', async ()=>{
+    try{
+      await factory.methods.bookMarriageAppointment("h", "123", accounts[1], "w", "123", accounts[2], "a", "123", accounts[3], "hHash", "wHash").send({
+        from: accounts[1],
+        gas: '5000000'
+      });
+
+      await factory.methods.approveMarriage("123", "0").send({
+        from: accounts[3],
+        gas: '5000000'
+      });
+
+      await factory.methods.wifeSignature("123", "0").send({
+        from: accounts[2],
+        gas: '5000000'
+      });
+
+      await factory.methods.uploadHusband("vHash", "rHash", "123", "0").send({
+        from: accounts[1],
+        value: '100000000000000000'
+      });
+
+      await factory.methods.governmentMarriageCertificate("0").send({
+        from: accounts[0],
+        gas: '5000000'
+      });
+
+      await factory.methods.bookMarriageAppointment("h", "123", accounts[1], "w", "122", accounts[2], "a", "123", accounts[3], "hHash", "wHash").send({
+        from: accounts[1],
+        gas: '5000000'
+      });
+      assert(false);
+    }catch(err){
+      assert(err);
+    }
+  })
 
   it('creates a whole child process', async ()=>{
     await factory.methods.bookMarriageAppointment("h", "123", accounts[1], "w", "123", accounts[2], "a", "123", accounts[3], "hHash", "wHash").send({
@@ -463,4 +500,92 @@ describe('PattiPatni', ()=>{
       assert(err);
     }
   });
+
+  it('can get married again after divorce', async () =>{
+    await factory.methods.bookMarriageAppointment("h", "123", accounts[1], "w", "123", accounts[2], "a", "123", accounts[3], "hHash", "wHash").send({
+      from: accounts[1],
+      gas: '5000000'
+    });
+
+    await factory.methods.approveMarriage("123", "0").send({
+      from: accounts[3],
+      gas: '5000000'
+    });
+
+    await factory.methods.wifeSignature("123", "0").send({
+      from: accounts[2],
+      gas: '5000000'
+    });
+
+    await factory.methods.uploadHusband("vHash", "rHash", "123", "0").send({
+      from: accounts[1],
+      value: '100000000000000000'
+    });
+
+    await factory.methods.governmentMarriageCertificate("0").send({
+      from: accounts[0],
+      gas: '5000000'
+    });
+
+    await factory.methods.claimDivorce("h", "w", "123", "123", "cHash").send({
+      from: accounts[1],
+      gas: '6000000'
+    });
+
+    await factory.methods.governmentCertifyDivorce("0").send({
+      from: accounts[0],
+      gas: '6000000'
+    });
+
+    await factory.methods.bookMarriageAppointment("h", "123", accounts[1], "w", "123", accounts[2], "a", "123", accounts[3], "hHash", "wHash").send({
+      from: accounts[1],
+      gas: '5000000'
+    });
+
+    await factory.methods.approveMarriage("123", "1").send({
+      from: accounts[3],
+      gas: '5000000'
+    });
+
+    await factory.methods.wifeSignature("123", "1").send({
+      from: accounts[2],
+      gas: '5000000'
+    });
+
+    await factory.methods.uploadHusband("vHash", "rHash", "123", "1").send({
+      from: accounts[1],
+      value: '100000000000000000'
+    });
+
+    await factory.methods.governmentMarriageCertificate("1").send({
+      from: accounts[0],
+      gas: '5000000'
+    });
+
+    const isApproved = await factory.methods.work(1).call();
+    const marriageCertificate = await factory.methods.getMarriageCertificate("123", "123").call();
+
+    const deployedCertificate = await new web3.eth.Contract(
+      JSON.parse(compiledCertificate.interface),
+      marriageCertificate
+    );
+
+    const certificateDetail = await deployedCertificate.methods.getCertificate().call();
+
+    assert.equal(true, isApproved.isCertified);
+    assert.ok(marriageCertificate);
+    assert.equal("h", certificateDetail[0]);
+  });
+
+  it('requires to get married first to get divorced', async ()=>{
+    try{
+      await factory.methods.claimDivorce("h", "w", "123", "123", "cHash").send({
+        from: accounts[1],
+        gas: '6000000'
+      });
+      assert(false);
+    }catch(err){
+      assert(err);
+    }
+  })
 });

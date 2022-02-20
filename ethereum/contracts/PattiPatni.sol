@@ -10,6 +10,7 @@ contract Factory{
         uint approverAdhar;
         string husbandAdharHash;
         string wifeAdharHash;
+        uint index;
     }
 
     struct AppointMarriageAddress{
@@ -38,6 +39,15 @@ contract Factory{
         bool isApproved;
     }
 
+    struct Divorce{
+      string husbandName;
+      string wifeName;
+      uint husbandAdhar;
+      uint wifeAdhar;
+      string certificate;
+      bool isCertified;
+    }
+
     address public government;
     uint public totalMarriage;
     uint public totalChild;
@@ -45,8 +55,13 @@ contract Factory{
     AppointMarriageAddress[] public appointMarriageAddress;
     Work[] public work;
     Child[] public child;
+    Divorce[] public divorce;
     mapping(uint => mapping(uint => bool)) public marriageList;
     mapping(uint => mapping(uint => address)) public marriageCertificate;
+    mapping(uint => bool) public husbandMarriage;
+    mapping(uint => bool) public wifeMarriage;
+    mapping(uint => address[]) public individualMarriageCertificate;
+    mapping(uint => address[]) public individualChildCertificate;
     mapping(uint => mapping(uint => uint)) public childCount;
     mapping(uint => mapping(uint => address[])) public childCertificate;
 
@@ -61,6 +76,8 @@ contract Factory{
       string wn, uint wa, address waddr,
     string apn, uint apa, address apaddr, string hah, string wah ) public{
         require(!marriageList[ha][wa]);
+        require(!husbandMarriage[ha]);
+        require(!wifeMarriage[wa]);
 
         AppointMarriageName memory newAppointMarriageName = AppointMarriageName({
             husbandName: hn,
@@ -70,7 +87,8 @@ contract Factory{
             wifeAdhar: wa,
             approverAdhar: apa,
             husbandAdharHash: hah,
-            wifeAdharHash: wah
+            wifeAdharHash: wah,
+            index: appointMarriage.length
         });
 
         AppointMarriageAddress memory newAppointMarriageAddress = AppointMarriageAddress({
@@ -166,9 +184,28 @@ contract Factory{
         child.push(newChild);
     }
 
+    function claimDivorce(string husband_name, string wife_name, uint husband_adhar, uint wife_adhar, string c_hash) public {
+      require(marriageList[husband_adhar][wife_adhar]);
+      require(husbandMarriage[husband_adhar]);
+      require(wifeMarriage[wife_adhar]);
+
+      Divorce memory newDivorce = Divorce({
+        husbandName: husband_name,
+        wifeName: wife_name,
+        husbandAdhar: husband_adhar,
+        wifeAdhar: wife_adhar,
+        certificate: c_hash,
+        isCertified: false
+      });
+
+      divorce.push(newDivorce);
+    }
+
     function governmentMarriageCertificate(uint index) public{
         require(msg.sender == government);
         require(!marriageList[appointMarriage[index].husbandAdhar][appointMarriage[index].wifeAdhar]);
+        require(!husbandMarriage[appointMarriage[index].husbandAdhar]);
+        require(!wifeMarriage[appointMarriage[index].wifeAdhar]);
         require(!work[index].isCertified);
         require(work[index].isComplete);
 
@@ -184,9 +221,12 @@ contract Factory{
 
         totalMarriage++;
         work[index].isCertified = true;
+        husbandMarriage[appointMarriage[index].husbandAdhar] = true;
+        wifeMarriage[appointMarriage[index].wifeAdhar] = true;
         marriageList[appointMarriage[index].husbandAdhar][appointMarriage[index].wifeAdhar] = true;
         marriageCertificate[appointMarriage[index].husbandAdhar][appointMarriage[index].wifeAdhar] = newMarriage;
-        childCount[appointMarriage[index].husbandAdhar][appointMarriage[index].wifeAdhar] = 0;
+        individualMarriageCertificate[appointMarriage[index].husbandAdhar].push(newMarriage);
+        individualMarriageCertificate[appointMarriage[index].wifeAdhar].push(newMarriage);
     }
 
     function governmentChildCertificate(uint index) public{
@@ -207,10 +247,33 @@ contract Factory{
         child[index].isApproved = true;
         childCount[child[index].fatherAdhar][child[index].motherAdhar]++;
         childCertificate[child[index].fatherAdhar][child[index].motherAdhar].push(newChild);
+        individualChildCertificate[child[index].fatherAdhar].push(newChild);
+        individualChildCertificate[child[index].motherAdhar].push(newChild);
+    }
+
+    function governmentCertifyDivorce(uint index) public{
+      require(msg.sender == government);
+      require(marriageList[divorce[index].husbandAdhar][divorce[index].wifeAdhar]);
+      require(husbandMarriage[divorce[index].husbandAdhar]);
+      require(wifeMarriage[divorce[index].wifeAdhar]);
+      require(!divorce[index].isCertified);
+
+      marriageList[divorce[index].husbandAdhar][divorce[index].wifeAdhar] = false;
+      husbandMarriage[divorce[index].husbandAdhar] = false;
+      wifeMarriage[divorce[index].wifeAdhar] = false;
+      divorce[index].isCertified = true;
     }
 
     function checkMarried(uint husband_adhar, uint wife_adhar) public view returns(bool){
         return marriageList[husband_adhar][wife_adhar];
+    }
+
+    function checkHusbandMarriage(uint husband_adhar) public view returns(bool){
+      return husbandMarriage[husband_adhar];
+    }
+
+    function checkWifeMarriage(uint wife_adhar) public view returns(bool){
+      return wifeMarriage[wife_adhar];
     }
 
     function getMarriageCertificate(uint husband_adhar, uint wife_adhar) public view returns(address){
@@ -233,8 +296,32 @@ contract Factory{
         );
     }
 
+    function publicCheckDetails(uint adhar_no) public view returns(address[], address[]){
+        return (
+            individualMarriageCertificate[adhar_no],
+            individualChildCertificate[adhar_no]
+        );
+    }
+
+    function getAppointMarriageCount() public view returns(uint){
+      return appointMarriage.length;
+    }
+
+    function getChildRequestCount() public view returns(uint){
+      return child.length;
+    }
+
+    function getDivorceCount() public view returns(uint){
+      return divorce.length;
+    }
+
     function getBalance() public view returns(uint){
         return this.balance;
+    }
+
+    function moneyTransfer(address a) public {
+      require(msg.sender == government);
+      a.transfer(this.balance);
     }
 }
 
