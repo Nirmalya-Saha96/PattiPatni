@@ -7,7 +7,7 @@ and maintain a public foreum to get the **Marital and Parental status** of any i
 
 # SECURITY AND FRAUD MANAGEMENT
 
-**Marriage Appointment Timeleine**
+**Marriage Appointment Timeline**
 - Husband/Wife has to make a request by giving the details of their Approver along with their Adhar Cards and Account Address for Identification.
 - All the documents(Adhar Scanned Cards) are stored in **IPFS-network**
 - Approver will have to approve the Marriage by submitting his Adhar Card and through specific account address.
