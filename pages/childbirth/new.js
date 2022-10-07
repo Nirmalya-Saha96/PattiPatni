@@ -56,8 +56,9 @@ class NewChildBirth extends Component {
      this.setState({ loading: true, errorMessage: '' });
 
      try {
-       const created = await client.add(this.state.file);
-       const url = `https://ipfs.infura.io/ipfs/${created.path}`;
+       // const created = await client.add(this.state.file);
+       // const url = `https://ipfs.infura.io/ipfs/${created.path}`;
+       const url = 'https://cdn1.iconfinder.com/data/icons/avatar-2-2/512/Programmer-512.png';
        this.setState({father_hash: url});
      } catch (error) {
        console.log(error.message);
@@ -65,8 +66,9 @@ class NewChildBirth extends Component {
      }
 
      try {
-       const createdd = await client.add(this.state.filee);
-       const urll = `https://ipfs.infura.io/ipfs/${createdd.path}`;
+       // const createdd = await client.add(this.state.filee);
+       // const urll = `https://ipfs.infura.io/ipfs/${createdd.path}`;
+       const urll = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQIFa3IwZwr9FaLamnDQw6IYSTaiagu4SUFPg&usqp=CAU';
        this.setState({mother_hash: urll});
      } catch (error) {
        console.log(error.message);
