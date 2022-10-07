@@ -39,8 +39,9 @@ class NewDivorce extends Component {
      this.setState({ loading: true, errorMessage: '' });
 
      try {
-       const created = await client.add(this.state.file);
-       const url = `https://ipfs.infura.io/ipfs/${created.path}`;
+       // const created = await client.add(this.state.file);
+       // const url = `https://ipfs.infura.io/ipfs/${created.path}`;
+       const url = 'https://images.template.net/469/Boy-Birth-Certificate--2X.jpg';
        this.setState({certificate_hash: url});
      } catch (error) {
        console.log(error.message);

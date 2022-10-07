@@ -50,8 +50,9 @@ class HusbandMarriageForm extends Component {
     this.setState({ loading: true, errorMessage: '' });
 
     try {
-      const created = await client.add(this.state.vFile);
-      const url = `https://ipfs.infura.io/ipfs/${created.path}`;
+      // const created = await client.add(this.state.vFile);
+      // const url = `https://ipfs.infura.io/ipfs/${created.path}`;
+      const url = 'https://www.youtube.com/embed/3RU1zEbnssE';
       this.setState({vHash: url});
     } catch (error) {
       console.log(error.message);
@@ -59,8 +60,9 @@ class HusbandMarriageForm extends Component {
     }
 
     try {
-      const created = await client.add(this.state.rFile);
-      const url = `https://ipfs.infura.io/ipfs/${created.path}`;
+      // const created = await client.add(this.state.rFile);
+      // const url = `https://ipfs.infura.io/ipfs/${created.path}`;
+      const url = 'https://us.123rf.com/450wm/alexraths/alexraths2101/alexraths210100031/163769152-broken-gold-wedding-rings-as-divorce-symbol-isolated-on-white-background-3d-render-.jpg?ver=6';
       this.setState({rHash: url});
     } catch (error) {
       console.log(error.message);
